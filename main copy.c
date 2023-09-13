@@ -2,54 +2,42 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <unistd.h>
-#include <string.h>
 #include <windows.h>
-
-int SizeConsole();
-void Logo_ChanelLogo();
-void *Funcion_A(void *arg);
-void *Funcion_B(void *arg);
-
-const int SizeLogoFila = 13;
-const int SizeLogoColumna = 30;
-
-int Program_in_Curse = 1;
-int ConsoleSizeInt = 0;
-
-const char *LogoGatoMio[13] = {
-    "@@@@@/@@@@@@@@@@@@@@@@@/@@@",
-    "@@@//////@@@@@@@@@@@&////@@",
-    "@@/////////@@@@@@@@///////&",
-    "@/////////////////////////&",
-    "&////////////////////////&@", //
-    "@&///////////////////////Y@",
-    "&////////////////////////6@",
-    "a////////////////////////@@",
-    "v///////////////////////-@@",
-    "@@/////////////////////@@@@", // 28 char - 13 filas
-    "v@@///@@@//////////@///@@@@",
-    "  @@@@@/////////////@@@@@@ ",
-    "    @@@@@@@@@@@@@@@@@@@@  "};
-
+#include "lib/GGraphs.h"
+#include "Tools/GText.h"
 
 struct FuncionAData
 {
     char *Intro;
+    void (*F_b)();
 };
+
+int ConsoleSizeInt = 0;
+
+void *Central_ASync(void *args);
+
+int Tools[3] = {1, 1, 1}; // Exit[0] Logo[1] SizeConsole[2]
+
+void ExitAll();
+void Pointer(char *x);
+void SuperFunction();
+void Menu_Ajustes();
+void CentralData(int Graphs_Change_Preferences[3]);
 
 int main()
 {
-    char *xLogo = "*********************\nNombre:\n Frosoni, Hugo Gabriel\nCorreo:\n Gabyfroso@gmail.com\n\nNumero:\n +5493816164351\n\n*********************";
+    char *xLogo = "*********************\nNombre:\n Frosoni, Hugo Gabriel\nCorreo:\n Gabyfroso@gmail.com\n\nNumero:\n +5493816164351\nForced Exit -5\n*********************";
     pthread_t threadA;
+    struct FuncionAData args;
 
-    struct FuncionAData dataA;
-    dataA.Intro = xLogo;
+    args.Intro = xLogo;
+    args.F_b = SuperFunction;
 
     system("color 2");
     // Crea el hilo para Funcion_A
-    if (pthread_create(&threadA, NULL, Funcion_A, &dataA) != 0)
+    if (pthread_create(&threadA, NULL, Central_ASync, &args) != 0)
     {
-        perror("Error al crear el hilo para Funcion_A");
+        perror("Error al crear el menu, consultar a Gabyfroso");
         exit(EXIT_FAILURE);
     }
 
@@ -59,66 +47,90 @@ int main()
     return 0;
 }
 
-// Función para Funcion_A
-void *Funcion_A(void *arg)
+/*
+
+
+*******************
+
+
+*/
+
+void SuperFunction()
 {
-    pthread_t threadB;
-
-    int PosiCharIntro = 0, salteoN = 0;
-    struct FuncionAData *data = (struct FuncionAData *)arg;
-    char *Intro = data->Intro;
-
-    while (1)
+    char IntSalida[10] = "";
+    do
     {
-        if (ConsoleSizeInt == 0 || ConsoleSizeInt != SizeConsole())
+        memset(IntSalida, 0, sizeof(IntSalida));
+        GOptions_menu();
+
+        scanf(" %s", &IntSalida);
+
+        switch (atoi(IntSalida))
         {
-            ConsoleSizeInt = SizeConsole();
-
-            system("cls");
-            for (int FilaConsole = 0; FilaConsole < 13; FilaConsole++)
-            {
-                // Logo ajustado izquierda
-                for (int space = 0; space < SizeConsole() - SizeLogoColumna; space++)
-                {
-                    if (Intro[PosiCharIntro] != '\0')
-                    {
-                        if (Intro[PosiCharIntro] == '\n')
-                        {
-                            printf(" ");
-                            salteoN++;
-                        }
-
-                        if (salteoN == 0)
-                        {
-                            printf("%c", Intro[PosiCharIntro]);
-                            PosiCharIntro++;
-                        }
-                    }
-                    else
-                    {
-                        printf(" ");
-                    }
-                }
-                printf("  %s\n", LogoGatoMio[FilaConsole]);
-                if (salteoN != 0)
-                {
-                    salteoN = 0;
-                    PosiCharIntro++;
-                }
-            }
-            PosiCharIntro = 0;
-
-            
+        case 2:
+        {
+            Menu_Ajustes();
         }
-        usleep(200); // Espera 0,2 segundos antes de verificar nuevamente
-
-        if (Program_in_Curse == 0)
+        break;
+        case 5:
+            goto fin;
+            break;
+        case -5:
         {
-            pthread_join(threadB, NULL);
+            int x[3] = {1, 0, 0};
+            CentralData(x);
+        }
+        break;
+
+        default:
             break;
         }
-    }
-    return NULL;
+    } while (atoi(IntSalida) != -5);
+fin:
+}
+
+void Menu_Ajustes()
+{
+    char IntSalida[10] = "a";
+    do
+    {
+        GOptions_Ajustes();
+
+        scanf(" %s", &IntSalida);
+
+        switch (atoi(IntSalida))
+        {
+        case 1:
+        {
+            int x[3] = {0, 1, 0};
+            CentralData(x);
+        }
+        break;
+        case 2:
+        {
+            int x[3] = {0, 0, 1};
+            CentralData(x);
+        }
+        break;
+        case 3:
+        {
+            int x[3] = {0, 1, 1};
+            CentralData(x);
+        }
+        break;
+        case 5:
+            goto fin;
+            break;
+        case -5:;
+            ExitAll();
+            break;
+
+        default:
+            break;
+        }
+
+    } while (atoi(IntSalida) != -5);
+fin:
 }
 
 /*
@@ -126,55 +138,136 @@ void *Funcion_A(void *arg)
 
 **********
 
+
+
+
 *******************
+
+
+
 
 **********
 
 
 */
 
-int SizeConsole()
+void *Central_ASync(void *args)
 {
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+    struct FuncionAData *thread_args = (struct FuncionAData *)args;
+    const char *Intro = thread_args->Intro;
+    void (*To_Menu)() = thread_args->F_b;
 
-    int columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-    int rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+    // Crear un hilo para ejecutar F_b de forma asíncrona
+    pthread_t thread_b;
 
-    return columns;
-}
-
-void Logo_ChanelLogo()
-{
-    int SizeConsoleAnterior = SizeConsole();
-
-    for (int i = 0; i < 13; i++)
+    while (1)
     {
-        for (int space = 0; space < SizeConsole() - SizeLogoFila; space++)
+        if (Tools[2])
         {
-            printf(" ");
-        }
-        printf("%s\n", LogoGatoMio[i]);
-    }
-
-    do
-    {
-        if (SizeConsoleAnterior != SizeConsole())
-        {
-            system("cls");
-            Sleep(20);
-            SizeConsoleAnterior = SizeConsole();
-            for (int i = 0; i < 13; i++)
+            if (ConsoleSizeInt == 0 || ConsoleSizeInt != SizeConsole())
             {
-                for (int space = 0; space < SizeConsole() - 30; space++)
+                ConsoleSizeInt = SizeConsole();
+
+                system("cls");
+
+                if (Tools[1] == 1)
                 {
-                    printf(" ");
+                    RecompletarDatos_y_Logo(Intro);
                 }
-                printf("%s\n", LogoGatoMio[i]);
+
+                if (pthread_create(&thread_b, NULL, (void *)To_Menu, NULL) != 0)
+                {
+                    perror("Error al ir directo al menu");
+                    pthread_exit(NULL);
+                }
+            }
+        }
+        else
+        {
+            if (thread_b == 0)
+            {
+                if (pthread_create(&thread_b, NULL, (void *)To_Menu, NULL) != 0)
+                {
+                    perror("Error al ir directo al menu");
+                    pthread_exit(NULL);
+                }
+            }
+        }
+
+        usleep(200); // Espera 0,2 segundos antes de verificar nuevamente
+
+        if (Tools[0] == 0)
+        {
+            if (thread_b != 0)
+            {
+                pthread_detach(thread_b);
             }
 
-            Sleep(90);
+            pthread_exit(NULL);
+            break;
         }
+    }
+}
 
-    } while ('d' == 'd');
+void Pointer(char *x)
+{
+    printf("\n %s", x[0]);
+    for (int i = 0; i < 3; i++)
+    {
+        printf(".");
+        sleep(1);
+    }
+    sleep(1);
+    system("cls");
+}
+
+void CentralData(int Any_Change[3])
+{
+    // Graphs_Change_Preferences es un int del cual el 0 es que no modifica nada, el 1 es que cambia alguna cosa.
+    // Exit[0] Logo[1] SizeConsole[2]
+
+    /*
+        Se recomienda Volver a poner el texto desde el inicio debido a la limpieza.
+        Exceptuando que quieras apagarla, claro.
+    */
+    if (Any_Change[0] == 1)
+    {
+        Pointer("Forzando cierre");
+        Tools[0] = 0;
+    }
+
+    if (Any_Change[1])
+    {
+        switch (Tools[1])
+        {
+        case 0:
+            Pointer("Logo Activado");
+            Tools[1] = 1;
+            break;
+        case 1:
+            Pointer("Logo Desactivado");
+            Tools[1] = 0;
+            break;
+        }
+    }
+    if (Any_Change[2])
+    {
+        switch (Tools[2])
+        {
+        case 0:
+            Pointer("Actualizacion por consola Activado");
+            Tools[2] = 1;
+            break;
+        case 1:
+            Pointer("Actualizacion por consola Desactivado");
+            Tools[2] = 0;
+            break;
+        }
+    }
+}
+
+void ExitAll()
+{
+    int ExitX[3] = {0, 0, 0};
+    CentralData(ExitX);
 }
